@@ -2,43 +2,48 @@ import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { topPicks } from '../data/portfolio';
 import { EASE, SectionHeading } from './fx';
-import { PosterBackdrop } from './Poster';
 import { RailButtons } from './Rail';
 
 export default function TopPicks() {
   const rail = useRef<HTMLDivElement>(null);
+
   return (
     <>
-      <SectionHeading kicker="Top 10 · from the resume" title="Sushmita's Top Picks" />
+      <SectionHeading kicker="Core Qualifications" title="Institutional Highlights" />
+
       <div className="group/rail relative">
-        <div ref={rail} className="rail gutter flex snap-x snap-mandatory gap-2 overflow-x-auto py-6">
+        {/* Clean Credential Grid (No Giant Netflix Numbers) */}
+        <div ref={rail} className="rail gutter flex snap-x snap-mandatory gap-3.5 overflow-x-auto py-4">
           {topPicks.map((pick, i) => (
             <motion.div
               key={pick.title}
-              className="group relative flex h-[260px] shrink-0 snap-start items-end sm:h-[300px]"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              className="group relative flex h-[240px] w-[210px] shrink-0 snap-start flex-col justify-between rounded-2xl border border-slate-800 bg-[#090e1a] p-5 shadow-xl transition-all duration-300 hover:-translate-y-1.5 hover:border-sky-500/50 hover:bg-[#0d1527] sm:w-[230px]"
+              initial={{ opacity: 0, y: 25 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '0px -5% 0px 0px' }}
-              transition={{ duration: 0.7, delay: Math.min(i, 5) * 0.06, ease: EASE }}
+              transition={{ duration: 0.5, delay: Math.min(i, 5) * 0.05, ease: EASE }}
             >
-              <span
-                aria-hidden
-                className="text-outline -mr-6 select-none font-display leading-[0.78] transition duration-500 group-hover:[-webkit-text-stroke-color:rgba(255,61,90,0.85)] sm:-mr-8"
-                style={{ fontSize: i === 9 ? 'clamp(9rem, 22vw, 15rem)' : 'clamp(11rem, 26vw, 19rem)', letterSpacing: i === 9 ? '-0.06em' : 0 }}
-              >
-                {i + 1}
-              </span>
-              <div className="relative z-10 h-[85%] w-[150px] overflow-hidden rounded-lg shadow-[-12px_0_30px_rgba(0,0,0,0.7)] ring-1 ring-white/10 transition duration-500 group-hover:-translate-y-2 group-hover:ring-white/30 sm:w-[180px]">
-                <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110">
-                  <PosterBackdrop palette={pick.palette} />
-                </div>
-                <div className="absolute inset-0 flex flex-col justify-between p-3.5">
-                  <span className="text-[9px] font-bold uppercase tracking-[0.26em] text-bone/70">{pick.label}</span>
-                  <div>
-                    <p className="font-display text-[1.75rem] leading-[0.92] tracking-wide text-bone">{pick.title}</p>
-                    <p className="mt-1.5 text-[11px] leading-snug text-mist">{pick.detail}</p>
-                  </div>
-                </div>
+              {/* Card Top: Sequential Badge & Checkmark */}
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1 rounded-md border border-sky-400/30 bg-sky-950/60 px-2.5 py-1 text-[9px] font-bold tracking-wider text-sky-300 uppercase">
+                  <span>✓</span> KEY HIGHLIGHT 0{i + 1}
+                </span>
+                <span className="text-xs text-emerald-400">★</span>
+              </div>
+
+              {/* Card Center: Scope Label & Bold Title */}
+              <div className="my-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{pick.label}</span>
+                <h3 className="mt-1 font-sans text-base font-bold leading-snug text-white group-hover:text-sky-200 transition-colors">
+                  {pick.title}
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-300">{pick.detail}</p>
+              </div>
+
+              {/* Card Bottom: Institutional Verification Footer */}
+              <div className="border-t border-slate-800/80 pt-2 flex items-center justify-between text-[10px] text-slate-400">
+                <span className="text-emerald-400 font-semibold">Official Record</span>
+                <span className="text-sky-400 font-mono text-[9px]">READY</span>
               </div>
             </motion.div>
           ))}

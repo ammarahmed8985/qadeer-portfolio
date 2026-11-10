@@ -2,7 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { viewerProfiles, type ProfileId, type Project, type SectionId } from './data/portfolio';
 import { SmoothScrollProvider, useSmoothScroll } from './hooks/smoothScroll';
-import CustomCursor from './components/CustomCursor';
 import OpeningSequence from './components/OpeningSequence';
 import ProfileSelector from './components/ProfileSelector';
 import Navbar from './components/Navbar';
@@ -26,7 +25,7 @@ const ResumeModal = lazy(() => import('./components/ResumeModal'));
 
 type Stage = 'opening' | 'profiles' | 'home';
 
-const STORAGE_KEY = 'sushmita-series-profile';
+const STORAGE_KEY = 'clinical-portfolio-profile';
 
 function readStoredProfile(): ProfileId | null {
   try {
@@ -48,14 +47,15 @@ export default function App() {
 function Series() {
   const stored = readStoredProfile();
   const [stage, setStage] = useState<Stage>(stored ? 'home' : 'opening');
-  const [profileId, setProfileId] = useState<ProfileId>(stored ?? 'sushmita');
+  const [profileId, setProfileId] = useState<ProfileId>(stored ?? (viewerProfiles[0]?.id || 'recruiter'));
   const [playing, setPlaying] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const { scrollTo, lock, unlock } = useSmoothScroll();
 
-  const order = viewerProfiles.find((p) => p.id === profileId)!.order;
+  const activeProfile = viewerProfiles.find((p) => p.id === profileId) || viewerProfiles[0];
+  const order = activeProfile.order;
 
   useEffect(() => {
     if (stage === 'home') return;
@@ -69,14 +69,16 @@ function Series() {
       try {
         sessionStorage.setItem(STORAGE_KEY, id);
       } catch {
-        /* storage unavailable — profile simply won't persist */
+        /* storage unavailable */
       }
       if (stage !== 'home') {
         window.scrollTo(0, 0);
         setStage('home');
       } else {
-        const p = viewerProfiles.find((v) => v.id === id)!;
-        setToast(`Now watching as ${p.name} — ${p.blurb.toLowerCase()}`);
+        const p = viewerProfiles.find((v) => v.id === id);
+        if (p) {
+          setToast(`Reviewing as ${p.name} — ${p.blurb.toLowerCase()}`);
+        }
         scrollTo(0, { offset: 0 });
       }
     },
@@ -106,7 +108,8 @@ function Series() {
   return (
     <LayoutGroup>
       <div className="grain" aria-hidden />
-      <CustomCursor />
+
+      {/* Laggy CustomCursor removed for natural, responsive OS cursor speed */}
 
       <AnimatePresence>
         {stage === 'opening' && <OpeningSequence key="opening" onDone={() => setStage('profiles')} />}
@@ -139,7 +142,7 @@ function Series() {
         {toast && (
           <motion.div
             role="status"
-            className="glass fixed bottom-6 left-1/2 z-[150] w-[min(92vw,420px)] -translate-x-1/2 rounded-xl px-5 py-3 text-center text-sm text-bone"
+            className="glass fixed bottom-6 left-1/2 z-[150] w-[min(92vw,420px)] -translate-x-1/2 rounded-xl px-5 py-3 text-center text-sm text-bone shadow-lg border border-teal-500/20"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}

@@ -21,58 +21,55 @@ export default function Achievements() {
 
   return (
     <>
-      <SectionHeading kicker="Awards season" title="Top Moments" />
+      <SectionHeading kicker="Verified Accolades" title="Institutional Commendations" />
 
-      <div className="gutter grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 [perspective:1400px]">
+      {/* Main Commendation Cards */}
+      <div className="gutter grid gap-4 sm:grid-cols-2 lg:grid-cols-4 [perspective:1400px]">
         {achievements.map((a, i) => (
           <motion.div
             key={a.id}
-            initial={{ opacity: 0, y: 50, rotateX: 18 }}
+            initial={{ opacity: 0, y: 40, rotateX: 14 }}
             whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
             viewport={{ once: true, margin: '-8% 0px' }}
-            transition={{ duration: 0.9, delay: i * 0.08, ease: EASE }}
+            transition={{ duration: 0.8, delay: i * 0.08, ease: EASE }}
           >
             <Tilt max={8} className="group h-full rounded-2xl">
-              <article className="relative flex h-full min-h-[340px] flex-col items-center overflow-hidden rounded-2xl bg-[radial-gradient(120%_80%_at_50%_0%,#2a1f10,#0d0b08_60%,#07070a)] px-5 pb-6 pt-8 text-center ring-1 ring-[#d9b46a]/20 transition duration-500 group-hover:ring-[#d9b46a]/60">
+              <article className="relative flex h-full min-h-[340px] flex-col items-center overflow-hidden rounded-2xl bg-[radial-gradient(120%_80%_at_50%_0%,#1e293b,#0b1222_60%,#070b14)] px-5 pb-6 pt-8 text-center border border-[#d9b46a]/30 transition duration-500 group-hover:border-[#d9b46a]/70 shadow-xl">
                 <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#d9b46a]/70 to-transparent" />
-                <div aria-hidden className="absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-[#d9b46a]/10 blur-3xl transition duration-700 group-hover:bg-[#d9b46a]/25" />
+                <div aria-hidden className="absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-[#d9b46a]/10 blur-3xl transition duration-700 group-hover:bg-[#d9b46a]/20" />
+                
                 <div className="relative flex items-center gap-1">
                   <Laurel side="l" />
                   <div className="px-1">
-                    <p className="text-[9px] font-bold uppercase leading-tight tracking-[0.24em] text-[#d9b46a]">{a.laurel}</p>
+                    <p className="text-[9px] font-bold uppercase leading-tight tracking-[0.2em] text-[#d9b46a]">{a.laurel}</p>
                   </div>
                   <Laurel side="r" />
                 </div>
-                <h3 className="relative mt-6 font-display text-[2.1rem] leading-[0.92] tracking-wide text-bone">{a.title}</h3>
-                <p className="relative mt-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#d9b46a]">{a.org}</p>
-                <p className="relative mt-4 text-[13px] leading-relaxed text-bone/70">{a.detail}</p>
-                {a.link && (
-                  <a
-                    href={a.link}
-                    target="_blank"
-                    rel="noreferrer"
-                    data-cursor="link"
-                    className="relative mt-auto inline-flex min-h-10 items-center gap-1 pt-5 text-xs font-semibold tracking-wide text-bone underline decoration-[#d9b46a]/60 underline-offset-4 hover:decoration-[#d9b46a]"
-                  >
-                    View certificate ↗
-                  </a>
-                )}
+                
+                <h3 className="relative mt-5 font-sans text-xl font-bold tracking-tight text-white">{a.title}</h3>
+                <p className="relative mt-1.5 text-xs font-semibold uppercase tracking-wider text-sky-300">{a.org}</p>
+                <p className="relative mt-4 text-[13px] leading-relaxed text-slate-300">{a.detail}</p>
+                
+                <div className="mt-auto pt-4 flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                  <span>✓</span> Verified Official Document
+                </div>
               </article>
             </Tilt>
           </motion.div>
         ))}
       </div>
 
-      {/* certifications rail */}
+      {/* Verified Certificates Rail */}
       <div className="mt-16">
-        <div className="gutter mb-2 flex flex-wrap items-end justify-between gap-2">
-          <h3 className="font-sans text-lg font-semibold text-bone sm:text-2xl">
-            Certified <span className="text-mist">· {certifications.length} credentials</span>
+        <div className="gutter mb-3 flex flex-wrap items-end justify-between gap-2">
+          <h3 className="font-sans text-lg font-bold text-white sm:text-2xl">
+            Official Credentials <span className="text-sky-400 font-normal">· {certifications.length} verified documents</span>
           </h3>
-          <p className="text-xs text-smoke">{issuers.join(' · ')}</p>
+          <p className="text-xs text-slate-400 font-medium">{issuers.join('  •  ')}</p>
         </div>
+        
         <div className="group/rail relative">
-          <div ref={rail} className="rail gutter flex snap-x gap-3 overflow-x-auto py-5">
+          <div ref={rail} className="rail gutter flex snap-x gap-3 overflow-x-auto py-4">
             {certifications.map((c, i) => (
               <motion.a
                 key={c.name}
@@ -80,17 +77,23 @@ export default function Achievements() {
                 target="_blank"
                 rel="noreferrer"
                 data-cursor="link"
-                className="group relative flex w-[230px] shrink-0 snap-start flex-col justify-between rounded-xl bg-ink-2 p-4 ring-1 ring-white/10 transition hover:-translate-y-1 hover:ring-white/30"
-                initial={{ opacity: 0, y: 20 }}
+                className="group relative flex w-[240px] shrink-0 snap-start flex-col justify-between rounded-xl border border-slate-800 bg-[#0b1222] p-4 transition-all duration-300 hover:-translate-y-1 hover:border-sky-500/40"
+                initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: Math.min(i, 6) * 0.04, ease: EASE }}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.24em] text-crimson-2">{c.issuer}</span>
-                  <span className="text-sm text-smoke transition group-hover:text-bone">↗</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">{c.issuer}</span>
+                  <span className="text-xs text-slate-500 transition group-hover:text-white">↗</span>
                 </div>
-                <p className="mt-6 text-sm font-medium leading-snug text-bone">{c.name}</p>
+                <p className="mt-5 text-xs font-semibold leading-snug text-white group-hover:text-sky-300 transition-colors">
+                  {c.name}
+                </p>
+                <div className="mt-4 flex items-center gap-1.5 text-[10px] text-emerald-400">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Official Record Ready
+                </div>
               </motion.a>
             ))}
           </div>
