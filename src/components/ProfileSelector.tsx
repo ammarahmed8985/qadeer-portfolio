@@ -48,8 +48,8 @@ export default function ProfileSelector({ onPick }: { onPick: (id: ProfileId) =>
       className="fixed inset-0 z-[110] flex flex-col items-center justify-center overflow-y-auto bg-[#060911] px-4 py-8 sm:py-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 0.98, filter: 'blur(8px)' }}
-      transition={{ duration: 0.6, ease: EASE }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25 }}
       role="dialog"
       aria-label="Institutional Review Portal"
     >

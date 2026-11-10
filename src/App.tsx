@@ -18,7 +18,6 @@ import ResumeSection from './components/ResumeViewer';
 import FinalCTA from './components/FinalCTA';
 import { EASE } from './components/fx';
 
-// Overlays are only needed on demand — split them out of the first load.
 const PlayIntro = lazy(() => import('./components/PlayIntro'));
 const ProjectModal = lazy(() => import('./components/ProjectModal'));
 const ResumeModal = lazy(() => import('./components/ResumeModal'));
@@ -47,7 +46,7 @@ export default function App() {
 function Series() {
   const stored = readStoredProfile();
   const [stage, setStage] = useState<Stage>(stored ? 'home' : 'opening');
-  const [profileId, setProfileId] = useState<ProfileId>(stored ?? (viewerProfiles[0]?.id || 'recruiter'));
+  const [profileId, setProfileId] = useState<ProfileId>(stored ?? (viewerProfiles[0]?.id || 'sushmita'));
   const [playing, setPlaying] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
@@ -57,10 +56,20 @@ function Series() {
   const activeProfile = viewerProfiles.find((p) => p.id === profileId) || viewerProfiles[0];
   const order = activeProfile.order;
 
+  // Manage mobile scroll locking safely
   useEffect(() => {
-    if (stage === 'home') return;
+    if (stage === 'home') {
+      unlock();
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+      return;
+    }
     lock();
-    return unlock;
+    return () => {
+      unlock();
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+    };
   }, [stage, lock, unlock]);
 
   const pickProfile = useCallback(
@@ -68,9 +77,13 @@ function Series() {
       setProfileId(id);
       try {
         sessionStorage.setItem(STORAGE_KEY, id);
-      } catch {
-        /* storage unavailable */
-      }
+      } catch {}
+      
+      // Force mobile unlock immediately
+      unlock();
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+
       if (stage !== 'home') {
         window.scrollTo(0, 0);
         setStage('home');
@@ -82,7 +95,7 @@ function Series() {
         scrollTo(0, { offset: 0 });
       }
     },
-    [stage, scrollTo],
+    [stage, scrollTo, unlock],
   );
 
   useEffect(() => {
@@ -109,15 +122,18 @@ function Series() {
     <LayoutGroup>
       <div className="grain" aria-hidden />
 
-      {/* Laggy CustomCursor removed for natural, responsive OS cursor speed */}
-
       <AnimatePresence>
         {stage === 'opening' && <OpeningSequence key="opening" onDone={() => setStage('profiles')} />}
         {stage === 'profiles' && <ProfileSelector key="profiles" onPick={pickProfile} />}
       </AnimatePresence>
 
       {stage === 'home' && (
-        <motion.div initial={{ opacity: 0, scale: 1.03, filter: 'blur(10px)' }} animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }} transition={{ duration: 1, ease: EASE }}>
+        /* Instant, lightweight fade transition (NO laggy blur filter for mobile) */
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease: EASE }}
+        >
           <Navbar order={order} profileId={profileId} onSwitch={pickProfile} />
           <main>
             <Hero key={`hero-${profileId}`} onPlay={() => setPlaying(true)} onResume={() => setResumeOpen(true)} profileId={profileId} />
