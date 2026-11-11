@@ -16,14 +16,14 @@ html, body {
 }
 
 @theme {
-  --color-ink: #07070a;
-  --color-ink-2: #0e0e13;
-  --color-ink-3: #16161d;
-  --color-crimson: #e5132b;
-  --color-crimson-2: #ff3d5a;
-  --color-bone: #f4f1ec;
-  --color-mist: #a7a6ad;
-  --color-smoke: #6d6c75;
+  --color-ink: #070b14;
+  --color-ink-2: #0b1222;
+  --color-ink-3: #111c33;
+  --color-crimson: #0284c7;    /* Replaced Netflix red with Medical Sky */
+  --color-crimson-2: #38bdf8;  /* Replaced Netflix pink with Clean Cyan */
+  --color-bone: #f8fafc;
+  --color-mist: #94a3b8;
+  --color-smoke: #64748b;
   --font-display: 'Bebas Neue', 'Oswald', Impact, sans-serif;
   --font-serif: 'Instrument Serif', Georgia, serif;
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -63,9 +63,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Medical Blue selection instead of Netflix Red */
 ::selection {
-  background: var(--color-crimson);
-  color: white;
+  background: #0284c7;
+  color: #ffffff;
 }
 
 .gutter {
@@ -73,13 +74,13 @@ body {
   padding-right: var(--gutter);
 }
 
-/* Film grain — a single fixed layer, cheap and subtle */
+/* Subtle background grain */
 .grain {
   position: fixed;
   inset: -50%;
   pointer-events: none;
   z-index: 90;
-  opacity: 0.055;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   animation: grain 1.2s steps(6) infinite;
 }
@@ -102,22 +103,14 @@ body {
   display: none;
 }
 
-/* Custom cursor: hide the native one only when ours is active */
-.has-custom-cursor,
-.has-custom-cursor a,
-.has-custom-cursor button,
-.has-custom-cursor [role='button'] {
-  cursor: none;
-}
-
 .text-outline {
   color: transparent;
-  -webkit-text-stroke: 2px rgba(244, 241, 236, 0.28);
+  -webkit-text-stroke: 2px rgba(56, 189, 248, 0.35);
 }
 
 .glass {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(14, 165, 233, 0.08), rgba(2, 132, 199, 0.03));
+  border: 1px solid rgba(56, 189, 248, 0.15);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
@@ -125,15 +118,16 @@ body {
 .focus-ring:focus-visible,
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--color-crimson-2);
+  outline: 2px solid #38bdf8;
   outline-offset: 3px;
   border-radius: 6px;
 }
 
+/* Medical Cyan Light Streaks */
 .light-streak {
   position: absolute;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 90, 110, 0.9), transparent);
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.8), transparent);
   filter: blur(0.4px);
   animation: streak 7s var(--ease-cine) infinite;
   opacity: 0;
@@ -149,7 +143,7 @@ a:focus-visible {
   to { background-position: 200% center; }
 }
 .shimmer-text {
-  background: linear-gradient(90deg, #f4f1ec 0%, #f4f1ec 40%, #ff8a9a 50%, #f4f1ec 60%, #f4f1ec 100%);
+  background: linear-gradient(90deg, #f8fafc 0%, #f8fafc 40%, #38bdf8 50%, #f8fafc 60%, #f8fafc 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;

@@ -16,7 +16,10 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
   const locks = useRef(0);
 
   useEffect(() => {
-    if (reduced) return;
+    // Disable Lenis on touch/mobile devices so phones use native lag-free momentum scrolling
+    const isTouch = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+    if (reduced || isTouch) return;
+
     const lenis = new Lenis({ duration: 1.15, smoothWheel: true, easing: (t) => 1 - Math.pow(1 - t, 4) });
     lenisRef.current = lenis;
     let raf = 0;
@@ -34,13 +37,22 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
 
   const scrollTo = useCallback<ScrollApi['scrollTo']>((target, opts = {}) => {
     const offset = opts.offset ?? -72;
-    const el = typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target;
-    if (el === null) return;
-    if (lenisRef.current) {
-      lenisRef.current.scrollTo(el, { offset, immediate: opts.immediate, duration: 1.4 });
-    } else {
-      const top = typeof el === 'number' ? el : el.getBoundingClientRect().top + window.scrollY + offset;
-      window.scrollTo({ top, behavior: opts.immediate ? 'auto' : 'smooth' });
+    try {
+      if (typeof target === 'number') {
+        window.scrollTo({ top: target, behavior: opts.immediate ? 'auto' : 'smooth' });
+        return;
+      }
+      const el = typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target;
+      if (!el) return;
+
+      if (lenisRef.current) {
+        lenisRef.current.scrollTo(el, { offset, immediate: opts.immediate, duration: 1.2 });
+      } else {
+        const top = el.getBoundingClientRect().top + window.scrollY + offset;
+        window.scrollTo({ top, behavior: opts.immediate ? 'auto' : 'smooth' });
+      }
+    } catch {
+      window.scrollTo(0, 0);
     }
   }, []);
 
@@ -55,15 +67,43 @@ export function SmoothScrollProvider({ children }: { children: ReactNode }) {
     if (locks.current === 0) {
       lenisRef.current?.start();
       document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     }
   }, []);
 
   return <ScrollCtx.Provider value={{ scrollTo, lock, unlock }}>{children}</ScrollCtx.Provider>;
 }
 
-export function useSmoothScroll() {
+// Crash-proof hook: Returns safe browser fallbacks instead of crashing React
+export function useSmoothScroll(): ScrollApi {
   const ctx = useContext(ScrollCtx);
-  if (!ctx) throw new Error('useSmoothScroll must be used inside SmoothScrollProvider');
+  if (!ctx) {
+    return {
+      scrollTo: (target, opts = {}) => {
+        const offset = opts?.offset ?? -72;
+        try {
+          if (typeof target === 'number') {
+            window.scrollTo({ top: target, behavior: opts?.immediate ? 'auto' : 'smooth' });
+          } else {
+            const el = typeof target === 'string' ? document.querySelector<HTMLElement>(target) : target;
+            if (el) {
+              const top = el.getBoundingClientRect().top + window.scrollY + offset;
+              window.scrollTo({ top, behavior: opts?.immediate ? 'auto' : 'smooth' });
+            }
+          }
+        } catch {
+          window.scrollTo(0, 0);
+        }
+      },
+      lock: () => {},
+      unlock: () => {
+        try {
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
+        } catch {}
+      },
+    };
+  }
   return ctx;
 }
 
