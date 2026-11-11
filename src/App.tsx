@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, Component, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { viewerProfiles, type ProfileId, type Project, type SectionId } from './data/portfolio';
 import { SmoothScrollProvider, useSmoothScroll } from './hooks/smoothScroll';
@@ -26,6 +26,42 @@ type Stage = 'opening' | 'profiles' | 'home';
 
 const STORAGE_KEY = 'clinical-portfolio-profile';
 
+// Safe Error Boundary to prevent black screen crashes
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: string }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: '' };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error: error.message };
+  }
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Captured React Error:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-[#070b14] p-6 text-center text-white">
+          <div className="max-w-md rounded-2xl border border-red-500/40 bg-red-950/40 p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-red-400">Component Loading Error</h2>
+            <p className="mt-2 text-xs font-mono text-slate-300">{this.state.error}</p>
+            <button
+              onClick={() => {
+                sessionStorage.clear();
+                window.location.reload();
+              }}
+              className="mt-5 rounded-lg bg-sky-400 px-4 py-2 text-xs font-bold text-slate-950"
+            >
+              Reset & Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function readStoredProfile(): ProfileId | null {
   try {
     const v = sessionStorage.getItem(STORAGE_KEY);
@@ -35,12 +71,13 @@ function readStoredProfile(): ProfileId | null {
   }
 }
 
-// 1. App must be wrapped with SmoothScrollProvider so child components don't crash
 export default function App() {
   return (
-    <SmoothScrollProvider>
-      <Series />
-    </SmoothScrollProvider>
+    <ErrorBoundary>
+      <SmoothScrollProvider>
+        <Series />
+      </SmoothScrollProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -52,21 +89,10 @@ function Series() {
   const [project, setProject] = useState<Project | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const { scrollTo, unlock } = useSmoothScroll();
+  const { scrollTo } = useSmoothScroll();
 
   const activeProfile = viewerProfiles.find((p) => p.id === profileId) || viewerProfiles[0];
   const order = activeProfile.order;
-
-  // Guarantee that on page reload, body scrolling is immediately enabled
-  useEffect(() => {
-    if (stage === 'home') {
-      try {
-        unlock();
-      } catch {}
-      document.body.style.overflowY = 'auto';
-      document.documentElement.style.overflowY = 'auto';
-    }
-  }, [stage, unlock]);
 
   const pickProfile = useCallback(
     (id: ProfileId) => {
@@ -74,12 +100,6 @@ function Series() {
       try {
         sessionStorage.setItem(STORAGE_KEY, id);
       } catch {}
-
-      try {
-        unlock();
-      } catch {}
-      document.body.style.overflowY = 'auto';
-      document.documentElement.style.overflowY = 'auto';
 
       if (stage !== 'home') {
         window.scrollTo(0, 0);
@@ -89,10 +109,12 @@ function Series() {
         if (p) {
           setToast(`Reviewing as ${p.name} — ${p.blurb.toLowerCase()}`);
         }
-        scrollTo(0, { offset: 0 });
+        try {
+          scrollTo(0, { offset: 0 });
+        } catch {}
       }
     },
-    [stage, scrollTo, unlock],
+    [stage, scrollTo],
   );
 
   useEffect(() => {
