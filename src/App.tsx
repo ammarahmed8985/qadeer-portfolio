@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { viewerProfiles, type ProfileId, type Project, type SectionId } from './data/portfolio';
+import { SmoothScrollProvider, useSmoothScroll } from './hooks/smoothScroll';
 import OpeningSequence from './components/OpeningSequence';
 import ProfileSelector from './components/ProfileSelector';
 import Navbar from './components/Navbar';
@@ -34,7 +35,16 @@ function readStoredProfile(): ProfileId | null {
   }
 }
 
+// 1. App must be wrapped with SmoothScrollProvider so child components don't crash
 export default function App() {
+  return (
+    <SmoothScrollProvider>
+      <Series />
+    </SmoothScrollProvider>
+  );
+}
+
+function Series() {
   const stored = readStoredProfile();
   const [stage, setStage] = useState<Stage>(stored ? 'home' : 'opening');
   const [profileId, setProfileId] = useState<ProfileId>(stored ?? (viewerProfiles[0]?.id || 'sushmita'));
@@ -42,17 +52,21 @@ export default function App() {
   const [project, setProject] = useState<Project | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const { scrollTo, unlock } = useSmoothScroll();
 
   const activeProfile = viewerProfiles.find((p) => p.id === profileId) || viewerProfiles[0];
   const order = activeProfile.order;
 
-  // Ensure native, unrestricted scrolling on mobile
+  // Guarantee that on page reload, body scrolling is immediately enabled
   useEffect(() => {
-    document.body.style.overflowY = 'auto';
-    document.documentElement.style.overflowY = 'auto';
-    document.body.style.touchAction = 'pan-y';
-    document.documentElement.style.touchAction = 'pan-y';
-  }, [stage]);
+    if (stage === 'home') {
+      try {
+        unlock();
+      } catch {}
+      document.body.style.overflowY = 'auto';
+      document.documentElement.style.overflowY = 'auto';
+    }
+  }, [stage, unlock]);
 
   const pickProfile = useCallback(
     (id: ProfileId) => {
@@ -60,6 +74,12 @@ export default function App() {
       try {
         sessionStorage.setItem(STORAGE_KEY, id);
       } catch {}
+
+      try {
+        unlock();
+      } catch {}
+      document.body.style.overflowY = 'auto';
+      document.documentElement.style.overflowY = 'auto';
 
       if (stage !== 'home') {
         window.scrollTo(0, 0);
@@ -69,10 +89,10 @@ export default function App() {
         if (p) {
           setToast(`Reviewing as ${p.name} — ${p.blurb.toLowerCase()}`);
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollTo(0, { offset: 0 });
       }
     },
-    [stage],
+    [stage, scrollTo, unlock],
   );
 
   useEffect(() => {
@@ -118,7 +138,12 @@ export default function App() {
                 {sections[id]}
               </Scene>
             ))}
-            <FinalCTA onReplay={() => setStage('opening')} />
+            <FinalCTA onReplay={() => {
+              try {
+                sessionStorage.removeItem(STORAGE_KEY);
+              } catch {}
+              setStage('opening');
+            }} />
           </main>
         </motion.div>
       )}
