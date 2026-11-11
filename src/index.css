@@ -1,5 +1,20 @@
 @import 'tailwindcss';
 
+/* Enable ultra-fast, smooth hardware-accelerated touch scrolling for phones */
+html, body {
+  overflow-x: hidden;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+}
+
+/* Disable the heavy GPU noise filter on mobile */
+@media (max-width: 768px) {
+  .grain {
+    display: none !important;
+  }
+}
+
 @theme {
   --color-ink: #07070a;
   --color-ink-2: #0e0e13;

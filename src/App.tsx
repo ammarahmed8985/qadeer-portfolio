@@ -1,7 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
-import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { viewerProfiles, type ProfileId, type Project, type SectionId } from './data/portfolio';
-import { SmoothScrollProvider, useSmoothScroll } from './hooks/smoothScroll';
 import OpeningSequence from './components/OpeningSequence';
 import ProfileSelector from './components/ProfileSelector';
 import Navbar from './components/Navbar';
@@ -36,14 +35,6 @@ function readStoredProfile(): ProfileId | null {
 }
 
 export default function App() {
-  return (
-    <SmoothScrollProvider>
-      <Series />
-    </SmoothScrollProvider>
-  );
-}
-
-function Series() {
   const stored = readStoredProfile();
   const [stage, setStage] = useState<Stage>(stored ? 'home' : 'opening');
   const [profileId, setProfileId] = useState<ProfileId>(stored ?? (viewerProfiles[0]?.id || 'sushmita'));
@@ -51,26 +42,17 @@ function Series() {
   const [project, setProject] = useState<Project | null>(null);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
-  const { scrollTo, lock, unlock } = useSmoothScroll();
 
   const activeProfile = viewerProfiles.find((p) => p.id === profileId) || viewerProfiles[0];
   const order = activeProfile.order;
 
-  // Manage mobile scroll locking safely
+  // Ensure native, unrestricted scrolling on mobile
   useEffect(() => {
-    if (stage === 'home') {
-      unlock();
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-      return;
-    }
-    lock();
-    return () => {
-      unlock();
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
-    };
-  }, [stage, lock, unlock]);
+    document.body.style.overflowY = 'auto';
+    document.documentElement.style.overflowY = 'auto';
+    document.body.style.touchAction = 'pan-y';
+    document.documentElement.style.touchAction = 'pan-y';
+  }, [stage]);
 
   const pickProfile = useCallback(
     (id: ProfileId) => {
@@ -78,11 +60,6 @@ function Series() {
       try {
         sessionStorage.setItem(STORAGE_KEY, id);
       } catch {}
-      
-      // Force mobile unlock immediately
-      unlock();
-      document.body.style.overflow = 'auto';
-      document.documentElement.style.overflow = 'auto';
 
       if (stage !== 'home') {
         window.scrollTo(0, 0);
@@ -92,10 +69,10 @@ function Series() {
         if (p) {
           setToast(`Reviewing as ${p.name} — ${p.blurb.toLowerCase()}`);
         }
-        scrollTo(0, { offset: 0 });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     },
-    [stage, scrollTo, unlock],
+    [stage],
   );
 
   useEffect(() => {
@@ -119,20 +96,18 @@ function Series() {
   };
 
   return (
-    <LayoutGroup>
-      <div className="grain" aria-hidden />
-
-      <AnimatePresence>
+    <div className="relative min-h-screen bg-[#070b14] text-slate-100 overflow-x-hidden">
+      <AnimatePresence mode="wait">
         {stage === 'opening' && <OpeningSequence key="opening" onDone={() => setStage('profiles')} />}
         {stage === 'profiles' && <ProfileSelector key="profiles" onPick={pickProfile} />}
       </AnimatePresence>
 
       {stage === 'home' && (
-        /* Instant, lightweight fade transition (NO laggy blur filter for mobile) */
         <motion.div
+          key="home"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.35, ease: EASE }}
+          transition={{ duration: 0.25, ease: EASE }}
         >
           <Navbar order={order} profileId={profileId} onSwitch={pickProfile} />
           <main>
@@ -167,6 +142,6 @@ function Series() {
           </motion.div>
         )}
       </AnimatePresence>
-    </LayoutGroup>
+    </div>
   );
 }
